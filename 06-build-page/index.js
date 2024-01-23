@@ -3,6 +3,7 @@ const path = require('path');
 const destinationPath = path.join(__dirname, 'project-dist');
 const componentsPath = path.join(__dirname, 'components');
 const templateFile = path.join(__dirname, 'template.html');
+const stylesPath = path.join(__dirname, 'styles');
 
 fs.rm(destinationPath, { recursive: true, force: true }, (err) => {
   if (err) {
@@ -13,6 +14,7 @@ fs.rm(destinationPath, { recursive: true, force: true }, (err) => {
       throw err;
     } else {
       createHtmlFile();
+      createStyleFile();
     }
   });
 });
@@ -43,6 +45,29 @@ function createHtmlFile() {
           });
         }
       });
+    });
+  });
+}
+
+function createStyleFile() {
+  const writableStream = fs.createWriteStream(
+    path.join(destinationPath, 'style.css'),
+  );
+
+  fs.readdir(stylesPath, { withFileTypes: true }, (err, files) => {
+    if (err) {
+      throw err;
+    }
+    files.forEach((file) => {
+      const fileExt = path.extname(file.name);
+      if (file.isFile() && fileExt === '.css') {
+        fs.readFile(path.join(stylesPath, file.name), (err, data) => {
+          if (err) {
+            throw err;
+          }
+          writableStream.write(`${data}\n`);
+        });
+      }
     });
   });
 }
