@@ -15,6 +15,7 @@ fs.rm(destinationPath, { recursive: true, force: true }, (err) => {
     } else {
       createHtmlFile();
       createStyleFile();
+      copyAssets('assets');
     }
   });
 });
@@ -70,4 +71,34 @@ function createStyleFile() {
       }
     });
   });
+}
+
+function copyAssets(dirName, ...dirPath) {
+  fs.mkdir(
+    path.join(destinationPath, ...dirPath, dirName),
+    { recursive: true },
+    () => {
+      fs.readdir(
+        path.join(__dirname, ...dirPath, dirName),
+        { withFileTypes: true },
+        (err, files) => {
+          if (err) {
+            throw err;
+          }
+          files.forEach((file) => {
+            if (file.isDirectory()) {
+              copyAssets(file.name, ...dirPath, dirName);
+            }
+            if (file.isFile()) {
+              fs.copyFile(
+                path.join(__dirname, ...dirPath, dirName, file.name),
+                path.join(destinationPath, ...dirPath, dirName, file.name),
+                () => {},
+              );
+            }
+          });
+        },
+      );
+    },
+  );
 }
